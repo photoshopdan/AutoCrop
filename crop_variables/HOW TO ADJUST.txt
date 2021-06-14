@@ -1,0 +1,7 @@
+scale_constant controls how zoomed-in the crop is;
+lower value = closer, higher value = wider.
+Default value is 6.198827569
+
+vertical_shift controls the vertical head position in the frame;
+higher value = head lower, lower value = head higher.
+Default value is 1.986256451
