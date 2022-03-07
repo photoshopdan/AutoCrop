@@ -23,11 +23,11 @@ def temp_cleanup(folder):
 
 # Send image to AWS and recieve face landmarks.
 def describe(photo):
-    client = boto3.client('rekognition', region_name = 'eu-west-2')
+    client = boto3.client('rekognition', region_name='eu-west-2')
 
     with open(photo, 'rb') as image:
-        response = client.detect_faces(Image = {'Bytes': image.read()},
-                                       Attributes = ['ALL'])
+        response = client.detect_faces(Image={'Bytes': image.read()},
+                                       Attributes=['ALL'])
 
     if not response['FaceDetails']:
         return 0
@@ -241,9 +241,9 @@ while True:
 print()
 
 # Load image, crop and save.
-for file_path in glob.glob(f'{folder[0]}/**/*.jpg', recursive = True):
+for file_path in glob.glob(f'{folder[0]}/**/*.jpg', recursive=True):
     file_directory, file_name = os.path.split(file_path)
-    relative_file_path = os.path.relpath(file_path, start = folder[0])
+    relative_file_path = os.path.relpath(file_path, start=folder[0])
     temp_directory = os.path.join(temp_folder,
                                   os.path.dirname(relative_file_path))
     try:
@@ -262,11 +262,11 @@ for file_path in glob.glob(f'{folder[0]}/**/*.jpg', recursive = True):
     img_size = img.size
     if img_size[0] >= img_size[1]:
         if exif[274] == 3:
-            img = img.transpose(method = Image.ROTATE_180)
+            img = img.transpose(method=Image.ROTATE_180)
         elif exif[274] == 6:
-            img = img.transpose(method = Image.ROTATE_270)
+            img = img.transpose(method=Image.ROTATE_270)
         elif exif[274] == 8:
-            img = img.transpose(method = Image.ROTATE_90)
+            img = img.transpose(method=Image.ROTATE_90)
         img_size = img.size
     
     # Create temporary file, find the landmarks and overwrite the file.
@@ -276,12 +276,12 @@ for file_path in glob.glob(f'{folder[0]}/**/*.jpg', recursive = True):
                            / (max(img_size) / min(img_size))))
     temp_img = img.resize((temp_dimensions[img_size.index(max(img_size))],
                            temp_dimensions[img_size.index(min(img_size))]),
-                          resample = Image.HAMMING,
-                          reducing_gap = 2.0)
+                          resample=Image.HAMMING,
+                          reducing_gap=2.0)
     if not os.path.exists(temp_directory):
         os.makedirs(temp_directory)
     temp_img.save(temp_file_name,
-                  quality = 75)
+                  quality=75)
 
     landmarks = describe(temp_file_name)
     if landmarks == 0:
@@ -298,10 +298,10 @@ for file_path in glob.glob(f'{folder[0]}/**/*.jpg', recursive = True):
     expansion = (0, 0)
     if rotate_img.casefold() == 'y':
         theta = compute_angle(landmarks, img_size)
-        img = img.rotate(angle = theta,
-                         resample = Image.BILINEAR,
-                         expand = True,
-                         fillcolor = '#ffffff')
+        img = img.rotate(angle=theta,
+                         resample=Image.BILINEAR,
+                         expand=True,
+                         fillcolor='#ffffff')
         expansion = tuple(np.subtract(img.size, img_size))
         
     # Crop the image.
@@ -324,19 +324,19 @@ for file_path in glob.glob(f'{folder[0]}/**/*.jpg', recursive = True):
     else:
         cropped = Image.new('RGB',
                             (crop[2] - crop[0], crop[3] - crop[1]),
-                            color = '#ffffff')
+                            color='#ffffff')
         cropped.paste(img, (-crop[0], -crop[1]))
 
         # Resample the image if required.
         if resample_img.casefold() == 'y':
             cropped = cropped.resize((output_w, output_h),
-                                     resample = Image.BICUBIC)
+                                     resample=Image.BICUBIC)
         
         # Save the final image.
         cropped.save(file_path,
-                     quality = 95,
-                     dpi = (300, 300),
-                     icc_profile = img_profile)
+                     quality=95,
+                     dpi=(300, 300),
+                     icc_profile=img_profile)
 
         print(f'{file_name} cropped and saved.')
 
@@ -347,16 +347,11 @@ try:
                    + f'"{temp_folder_abs}/%d/%f.%e" -all:all '
                    + '--IFD0:Orientation --ThumbnailImage '
                    + '-overwrite_original -r .',
-                   shell = False, stdout = subprocess.DEVNULL,
-                   stderr = subprocess.STDOUT, cwd = folder[0])
+                   shell=False, stdout=subprocess.DEVNULL,
+                   stderr=subprocess.STDOUT, cwd=folder[0])
     print('\nMetadata successfully added.')
 except:
     print('\nThere was a problem reinstating the metadata')
 
 input('\nFolder complete. Press enter to exit.')
-
-
-# Add sharpening to compensate for rotation resampling?
-# GPU acceleration to improve speed of rotation and resizing?
-# Fail on images which have already been cropped.
 
