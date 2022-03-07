@@ -166,6 +166,8 @@ output_ratio = 2 / 3 # Ratio when resize after crop not selected.
 # Functional variables.
 folder = sys.argv[1:]
 temp_folder = 'Temp\\'
+if not os.path.exists(temp_folder):
+    os.mkdir(temp_folder)
 temp_folder_abs = os.path.abspath(temp_folder)
 temp_longedge = 800
 profile = ImageCms.ImageCmsProfile('ICC Profile/sRGB Color Space Profile.icm')
